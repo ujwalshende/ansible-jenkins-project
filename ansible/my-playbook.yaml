@@ -1,0 +1,47 @@
+---
+- name: Wait for SSH Connection
+  hosts: tag_Name_prod_server
+  gather_facts: False
+  tasks:
+    - name: Ensure SSH port open
+      wait_for: 
+        port: 22
+        delay: 10
+        timeout: 100
+        search_regex: OpenSSH
+        host: '{{ (ansible_ssh_host|default(ansible_host))|default(inventory_hostname) }}'
+      vars:
+        ansible_connection: local
+        ansible_python_interpreter: /home/ujwal/ansible-venv/bin/python
+- name: Install and start Docker
+  hosts: tag_Name_prod_server
+  become: yes
+  tasks:
+    - name: Install Docker
+      yum:
+        name: docker
+        update_cache: yes
+        state: present
+    - name: Start docker daemon
+      systemd:
+        name: docker
+        state: started
+
+- name: Install Docker-compose
+  hosts: tag_Name_prod_server
+  become: yes
+  become_user: ujwal
+
+  tasks:
+    - name: Create docker-compose directory
+      file:
+        path: ~/.docker/cli-plugins
+        state: directory
+    - name: Get architecture of remote machine
+      shell: uname -m
+      register: remote_arch
+    - name: Install docker-compose
+      get_url: 
+        url: https://github.com/docker/compose/releases/latest/download/docker-compose-linux-{{ remote_arch.stdout_lines[0] }}
+        dest: ~/.docker/cli-plugins/docker-compose
+        mode: +x  

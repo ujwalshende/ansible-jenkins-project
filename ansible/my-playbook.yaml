@@ -1,18 +1,4 @@
 ---
-- name: Wait for SSH Connection
-  hosts: tag_Name_prod_server
-  gather_facts: False
-  tasks:
-    - name: Ensure SSH port open
-      wait_for: 
-        port: 22
-        delay: 10
-        timeout: 100
-        search_regex: OpenSSH
-        host: '{{ (ansible_ssh_host|default(ansible_host))|default(inventory_hostname) }}'
-      vars:
-        ansible_connection: local
-        ansible_python_interpreter: /home/ujwal/ansible-venv/bin/python
 - name: Install and start Docker
   hosts: tag_Name_prod_server
   become: yes
@@ -29,9 +15,6 @@
 
 - name: Install Docker-compose
   hosts: tag_Name_prod_server
-  become: yes
-  become_user: ujwal
-
   tasks:
     - name: Create docker-compose directory
       file:
